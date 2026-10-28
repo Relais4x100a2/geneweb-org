@@ -1695,7 +1695,7 @@ and title_item =
   int * istr gen_title_name * istr * istr list *
     (date option * date option) list
 and event_item =
-  event_name * cdate * istr * istr * istr * (iper * witness_kind) array *
+  event_name * cdate * istr * istr * istr list * (iper * witness_kind) array *
     iper option
 and event_name =
     Pevent of istr gen_pers_event_name
@@ -1809,9 +1809,8 @@ let events_list conf base p =
            let date = evt.epers_date in
            let place = evt.epers_place in
            let note = evt.epers_note in
-           let src = evt.epers_src in
            let wl = evt.epers_witnesses in
-           let x = name, date, place, note, src, wl, None in x :: events)
+           let x = name, date, place, note, evt.epers_sources, wl, None in x :: events)
         (get_pevents p) []
     else []
   in
@@ -1840,7 +1839,7 @@ let events_list conf base p =
                   let date = evt.efam_date in
                   let place = evt.efam_place in
                   let note = evt.efam_note in
-                  let src = evt.efam_src in
+                  let src = if evt.efam_src = Gwdb.empty_string then [] else [evt.efam_src] in
                   let wl = evt.efam_witnesses in
                   let x = name, date, place, note, src, wl, Some isp in
                   x :: fam_fevents)
@@ -3387,12 +3386,12 @@ and eval_nobility_title_field_var (id, pl) =
   | [] -> VVstring (if pl = "" then id else id ^ " " ^ pl)
   | _ -> raise Not_found
 and eval_bool_event_field base (p, p_auth)
-    (_, date, place, note, src, w, isp) =
+    (_, date, place, note, sources, w, isp) =
   function
     "has_date" -> p_auth && date <> Adef.cdate_None
   | "has_place" -> p_auth && sou base place <> ""
   | "has_note" -> p_auth && sou base note <> ""
-  | "has_src" -> p_auth && sou base src <> ""
+  | "has_src" -> p_auth && sources <> []
   | "has_witnesses" -> p_auth && Array.length w > 0
   | "has_spouse" -> p_auth && isp <> None
   | "computable_age" ->
@@ -3408,7 +3407,7 @@ and eval_bool_event_field base (p, p_auth)
       else false
   | _ -> raise Not_found
 and eval_str_event_field conf base (p, p_auth)
-    (name, date, place, note, src, _, _) =
+    (name, date, place, note, sources, _, _) =
   function
     "age" ->
       if p_auth then
@@ -3456,10 +3455,12 @@ and eval_str_event_field conf base (p, p_auth)
       get_note_source conf base env p_auth conf.no_note (sou base note)
   | "src" ->
       let env = ['i', (fun () -> Util.default_image_name base p)] in
+      (* Pour la compatibilité, on prend la première source *)
+      let src = match sources with [] -> Gwdb.empty_string | hd :: _ -> hd in
       get_note_source conf base env p_auth false (sou base src)
   | _ -> raise Not_found
 and eval_event_field_var conf base env (p, p_auth)
-    (name, date, place, note, src, w, isp) loc =
+    (name, date, place, note, sources, w, isp) loc =
   function
     "date" :: sl ->
       begin match p_auth, Adef.od_of_cdate date with
@@ -3478,11 +3479,11 @@ and eval_event_field_var conf base env (p, p_auth)
       begin try
         bool_val
           (eval_bool_event_field base (p, p_auth)
-             (name, date, place, note, src, w, isp) s)
+             (name, date, place, note, sources, w, isp) s)
       with Not_found ->
         str_val
           (eval_str_event_field conf base (p, p_auth)
-             (name, date, place, note, src, w, isp) s)
+             (name, date, place, note, sources, w, isp) s)
       end
   | _ -> raise Not_found
 and eval_event_witness_relation_var conf base env (p, e) loc =
@@ -3767,7 +3768,9 @@ and eval_bool_person_field conf base env (p, p_auth) =
               match events with
                 [] -> false
               | (name, _, p, n, s, wl, _) :: events ->
-                  let (p, n, s) = sou base p, sou base n, sou base s in
+                  (* Pour la compatibilité, on prend la première source *)
+                  let s_str = match s with [] -> "" | hd :: _ -> sou base hd in
+                  let (p, n, s) = sou base p, sou base n, s_str in
                   match name with
                     Pevent pname ->
                       begin match pname with

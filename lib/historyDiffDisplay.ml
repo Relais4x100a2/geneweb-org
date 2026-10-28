@@ -705,10 +705,17 @@ and eval_str_gen_record conf base env (bef, aft, p_auth) =
           if p_auth then
             match bef, aft with
               Some b, Some a ->
-                let b = Util.escape_html b.epers_src in
-                let a = Util.escape_html a.epers_src in diff_string b a
-            | None, Some a -> "", Util.escape_html a.epers_src
-            | Some b, None -> Util.escape_html b.epers_src, ""
+                (* Pour l'affichage, on prend la première source de chaque *)
+                let b_src = match b.epers_sources with [] -> "" | hd :: _ -> hd in
+                let a_src = match a.epers_sources with [] -> "" | hd :: _ -> hd in
+                let b = Util.escape_html b_src in
+                let a = Util.escape_html a_src in diff_string b a
+            | None, Some a ->
+                let a_src = match a.epers_sources with [] -> "" | hd :: _ -> hd in
+                "", Util.escape_html a_src
+            | Some b, None ->
+                let b_src = match b.epers_sources with [] -> "" | hd :: _ -> hd in
+                Util.escape_html b_src, ""
             | None, None -> "", ""
           else "", ""
       | _ -> raise Not_found

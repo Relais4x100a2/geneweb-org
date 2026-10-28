@@ -1,0 +1,7 @@
+(include_subdirs no)
+(executable
+  (package geneweb)
+  (name gwfixbase)
+  (public_name geneweb.gwfixbase)
+  (modules gwfixbase)
+  (libraries unix str geneweb))

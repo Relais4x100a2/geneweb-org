@@ -1,0 +1,16 @@
+(include_subdirs no)
+(library
+  (name gwu_lib)
+  (public_name geneweb.gwu_lib)
+  (wrapped false)
+  (libraries geneweb-lib)
+  (modules)
+)
+
+(executable
+  (package geneweb)
+  (name gwu)
+  (public_name geneweb.gwu)
+  (flags -w -8)
+  (modules gwu)
+  (libraries geneweb-lib geneweb-lib.def geneweb-gwdb-legacy geneweb-sosa-zarith geneweb-wserver gwu_lib str unix))

@@ -1,4 +1,57 @@
-# GeneWeb
+# GeneWeb (Fork)
+
+Ce dépôt est un fork de [GeneWeb](https://github.com/geneweb/geneweb), un logiciel de généalogie open source écrit en OCaml. Il est basé sur la version stable **7.0.0** et est structuré autour de 3 piliers de développement.
+
+## Structure du Fork
+
+Ce fork est organisé autour de 3 piliers principaux :
+
+### Pilier 1 : Modification/Ajout/Transformation de Champs
+Amélioration et extension des champs existants dans GeneWeb :
+- Transformation du système de sources (multi-sources avec métadonnées)
+- Ajout de nouveaux champs aux événements
+- Transformation de champs existants pour une meilleure structuration
+
+**Branche** : `feature/fields-enhancement`  
+**Documentation** : [docs/pilier-1-champs/](docs/pilier-1-champs/)
+
+### Pilier 2 : Création d'entité "Organisation"
+Ajout d'un nouveau type d'entité principale pour représenter les organisations :
+- Entreprises, écoles, associations, etc.
+- Liens avec les personnes et événements
+- CRUD complet pour les organisations
+
+**Branche** : `feature/organizations`  
+**Documentation** : [docs/pilier-2-organisations/](docs/pilier-2-organisations/)
+
+### Pilier 3 : Imports Automatisés (Excel/API)
+Système d'import automatisé de données :
+- Import depuis fichiers Excel
+- Import via API
+- Validation et transformation des données
+
+**Branche** : `feature/imports`  
+**Documentation** : [docs/pilier-3-imports/](docs/pilier-3-imports/)
+
+## Documentation
+
+La documentation complète du fork est disponible dans le répertoire [docs/](docs/) :
+- [Index de la documentation](docs/README.md)
+- [Connaissances acquises](docs/connaissances-acquises.md)
+- Documentation détaillée pour chaque pilier
+
+## Workflow de Développement
+
+Le développement suit un workflow Git standard :
+- `base/v7.0.0` : Base stable depuis le tag v7.0.0
+- `develop` : Branche d'intégration principale
+- `feature/*` : Branches de développement pour chaque pilier
+
+Voir [CONTRIBUTING.md](CONTRIBUTING.md) pour le guide de contribution complet.
+
+---
+
+# GeneWeb (Original)
 
 GeneWeb is an open source genealogy software written in OCaml. It comes
 with a Web interface and can be used off-line or as a Web service.

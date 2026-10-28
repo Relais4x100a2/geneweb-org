@@ -111,7 +111,7 @@ module J = struct
     { epers_place = get_string "place" json
     ; epers_reason = get_string "reason" json
     ; epers_note = get_string "note" json
-    ; epers_src = get_string "src" json
+    ; epers_sources = (let src = get_string "src" json in if src = "" then [] else [Gwdb.istr_of_string src])
     ; epers_name = pevent_name_of_string (get_string "name" json)
     ; epers_date = cdate_of_json (member "date" json)
     ; epers_witnesses = Array.of_list (get_list "witnesses" pevent_witness_of_json json)
@@ -558,7 +558,7 @@ let person_of_json (json : J.t) =
       | _ :: tl -> loop tl
     in
     match loop pevents with
-    | Some e -> (fn e , e.epers_place, e.epers_note, e.epers_src)
+    | Some e -> (fn e , e.epers_place, e.epers_note, match e.epers_sources with [] -> Gwdb.empty_string | hd :: _ -> hd)
     | None -> (def, "", "", "")
   in
   let baptism, baptism_place, baptism_note, baptism_src =

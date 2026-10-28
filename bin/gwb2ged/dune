@@ -1,0 +1,25 @@
+(include_subdirs no)
+(library
+  (name gwb2ged_lib)
+  (public_name geneweb.gwb2ged_lib)
+  (wrapped false)
+  (libraries geneweb-lib)
+  (modules)
+)
+
+(executable
+  (package geneweb)
+  (name gwb2ged)
+  (public_name geneweb.gwb2ged)
+  (flags -w -8)
+  (modules gwb2ged)
+  (libraries
+    geneweb
+    geneweb-lib.def
+    geneweb-gwdb-legacy
+    geneweb-sosa-zarith
+    geneweb-wserver
+    gwb2ged_lib
+    gwu_lib
+    str
+    unix))

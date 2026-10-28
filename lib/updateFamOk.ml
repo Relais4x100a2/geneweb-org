@@ -774,7 +774,7 @@ let patch_person_with_pevents base ip =
   let evt ~name ?(date = Adef.cdate_None) ~place ~src ~note () =
     {epers_name = name; epers_date = date;
      epers_place = place; epers_reason = empty_string;
-     epers_note = note; epers_src = src;
+     epers_note = note; epers_sources = if src = empty_string then [] else [src];
      epers_witnesses = [| |]}
   in
   let evt_birth =

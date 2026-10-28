@@ -59,7 +59,8 @@ let merge_events l1 l2 p =
                    let e1 =
                      {e1 with epers_date = p.birth;
                       epers_place = p.birth_place; epers_note = p.birth_note;
-                      epers_src = p.birth_src; epers_witnesses = witnesses}
+                      epers_sources = if p.birth_src = "" then [] else [p.birth_src];
+                      epers_witnesses = witnesses}
                    in
                    let _ = found_birth := true in true, e1 :: l1
                  else mem, e1 :: l1
@@ -72,7 +73,8 @@ let merge_events l1 l2 p =
                    let e1 =
                      {e1 with epers_date = p.baptism;
                       epers_place = p.baptism_place;
-                      epers_note = p.baptism_note; epers_src = p.baptism_src;
+                      epers_note = p.baptism_note;
+                      epers_sources = if p.baptism_src = "" then [] else [p.baptism_src];
                       epers_witnesses = witnesses}
                    in
                    let _ = found_baptism := true in true, e1 :: l1
@@ -94,7 +96,8 @@ let merge_events l1 l2 p =
                    in
                    let e1 =
                      {e1 with epers_date = date; epers_place = p.death_place;
-                      epers_note = p.death_note; epers_src = p.death_src;
+                      epers_note = p.death_note;
+                      epers_sources = if p.death_src = "" then [] else [p.death_src];
                       epers_witnesses = witnesses}
                    in
                    let _ = found_death := true in
@@ -113,7 +116,7 @@ let merge_events l1 l2 p =
                          {e1 with epers_date = cd;
                           epers_place = p.burial_place;
                           epers_note = p.burial_note;
-                          epers_src = p.burial_src;
+                          epers_sources = if p.burial_src = "" then [] else [p.burial_src];
                           epers_witnesses = witnesses}
                        in
                        let _ = found_burial := true in true, e1 :: l1
@@ -132,7 +135,7 @@ let merge_events l1 l2 p =
                          {e1 with epers_date = cd;
                           epers_place = p.burial_place;
                           epers_note = p.burial_note;
-                          epers_src = p.burial_src;
+                          epers_sources = if p.burial_src = "" then [] else [p.burial_src];
                           epers_witnesses = witnesses}
                        in
                        let _ = found_burial := true in true, e1 :: l1
@@ -233,6 +236,11 @@ let reconstitute conf base p1 p2 =
   in
   (* On fait la fusion des évènements à partir *)
   (* de la fusion des évènements principaux.   *)
+  (* p est déjà de type ('a, string) gen_person, donc p.pevents est de type ('a, string) gen_pers_event list *)
+  (* merge_primary_events attend une fonction qui convertit ('a, istr) en ('a, string), *)
+  (* mais ici p.pevents est déjà de type ('a, string), donc on n'a pas besoin de conversion *)
+  (* Cependant, merge_primary_events utilise p1 et p2 qui sont de type person (avec istr), *)
+  (* donc on doit utiliser get_pevents sur p1 et p2, puis convertir avec Futil.map_pers_event *)
   let pevents =
     merge_primary_events (Futil.map_pers_event (sorp base) (sou base)) get_pevents p
   in

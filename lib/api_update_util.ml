@@ -1260,7 +1260,8 @@ let pers_to_piqi_mod_person conf base p =
          let place = sou base evt.epers_place in
          let reason = None in
          let note = sou base evt.epers_note in
-         let src = sou base evt.epers_src in
+         (* Pour l'API, on prend la première source (ou chaîne vide) *)
+         let src = match evt.epers_sources with [] -> "" | hd :: _ -> sou base hd in
          let witnesses =
            Mutil.array_to_list_map
              (fun (ip, wk) ->

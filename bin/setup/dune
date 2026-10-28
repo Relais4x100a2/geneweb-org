@@ -1,0 +1,15 @@
+(include_subdirs no)
+(rule
+ (targets setup.ml)
+ (deps setup.camlp5.ml)
+ (action
+  (with-stdout-to %{targets}
+   (run not-ocamlfind preprocess -package camlp5.extend,camlp5.quotations,camlp5.pr_o -syntax camlp5o %{deps}))))
+(executable
+  (package geneweb)
+  (name setup)
+  (public_name geneweb.setup)
+  (flags -w -8)
+  (preprocess (action (run %{bin:cppo} -D UNIX  %{input-file})))
+  (libraries unix str wserver geneweb geneweb-lib.util geneweb-gwdb-legacy geneweb-sosa-zarith geneweb-wserver)
+  (modules setup))

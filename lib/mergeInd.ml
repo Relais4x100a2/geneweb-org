@@ -168,7 +168,10 @@ let effective_merge_ind conf base (warning : CheckItem.base_warning -> unit) p1 
       let rec loop l accu =
         match l with
           [] -> accu
-        | evt :: l -> loop l (evt.epers_note :: evt.epers_src :: accu)
+        | evt :: l ->
+            (* Aplatir la liste de sources dans l'accumulateur *)
+            let sources_list = List.rev_append evt.epers_sources [] in
+            loop l (evt.epers_note :: (List.rev_append sources_list accu))
       in
       loop p1.pevents sl
     in

@@ -105,7 +105,7 @@ let pevents_aux conf base filter acc p =
             ; date = piqi_date_of_date @@ Adef.date_of_cdate e.epers_date
             ; place = sou base e.epers_place
             ; note = sou base e.epers_note
-            ; src = sou base e.epers_src
+            ; src = match e.epers_sources with [] -> "" | hd :: _ -> sou base hd
             } :: acc
         end
       else acc

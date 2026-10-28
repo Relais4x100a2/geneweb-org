@@ -1,0 +1,8 @@
+(library
+  (name geneweb_logs)
+  (public_name geneweb.logs)
+  (libraries
+    fmt
+    unix)
+  (preprocess
+    (action (run %{bin:cppo} -D UNIX  %{input-file}))))

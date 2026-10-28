@@ -1,6 +1,7 @@
 (library
  (name wserver_gw)
  (public_name geneweb-wserver)
+ (flags -w -8)
  (libraries unix)
  (implements geneweb-lib.wserver.mli)
 )

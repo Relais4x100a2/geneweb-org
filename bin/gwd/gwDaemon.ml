@@ -8,7 +8,7 @@ open Util
 module StrSet = Mutil.StrSet
 
 module Make
-    (Request : Request.MakeOut)
+    (Request : Gwd_lib.Request.MakeOut)
   : (sig val run : ?speclist:(string * Arg.spec * string) list -> unit -> unit end)
 = struct
 

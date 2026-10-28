@@ -260,7 +260,8 @@ let reconstitute_person conf base mod_p : ('a, string * string * int * Update.cr
           let evt =
             { epers_name = name; epers_date = Adef.cdate_of_od date;
               epers_place = place; epers_reason = reason; epers_note = note;
-              epers_src = src; epers_witnesses = Array.of_list witnesses }
+              epers_sources = if src = "" then [] else [Gwdb.istr_of_string src];
+              epers_witnesses = Array.of_list witnesses }
           in
           evt :: pevents)
       mod_p.Mwrite.Person.pevents []
@@ -407,7 +408,10 @@ let print_mod ?(fexclude = []) conf base mod_p =
           let rec loop l accu =
             match l with
             | [] -> accu
-            | evt :: l -> loop l (evt.epers_note :: evt.epers_src :: accu)
+            | evt :: l ->
+                (* Aplatir la liste de sources dans l'accumulateur *)
+                let sources_list = List.rev_append evt.epers_sources [] in
+                loop l (evt.epers_note :: (List.rev_append sources_list accu))
           in
           loop (p.pevents) sl
         in
@@ -701,7 +705,8 @@ let reconstitute_person_nobase conf mod_p =
           let evt =
             { epers_name = name; epers_date = Adef.cdate_of_od date;
               epers_place = place; epers_reason = reason; epers_note = note;
-              epers_src = src; epers_witnesses = Array.of_list witnesses }
+              epers_sources = if src = "" then [] else [Gwdb.istr_of_string src];
+              epers_witnesses = Array.of_list witnesses }
           in
           evt :: pevents)
       mod_p.Mwrite.Person.pevents []

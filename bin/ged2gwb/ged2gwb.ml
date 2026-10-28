@@ -535,10 +535,18 @@ let using_token (p_con, _) =
             "\" is not recognized by the lexer"))
 
 let date_lexer =
-  {Token.tok_func = (fun s -> make_date_lexing s, (fun _ -> Token.dummy_loc));
-   Token.tok_using = using_token; Token.tok_removing = (fun _ -> ());
-   Token.tok_match = tparse; Token.tok_text = (fun _ -> "<tok>");
-   Token.tok_comm = None}
+  { Token.tok_func =
+      (fun s -> make_date_lexing s
+              ,  { Plexing.Locations.locations = ref [||]
+                 ; overflow = ref true }
+      )
+  ; Token.tok_using = using_token
+  ; Token.tok_removing = (fun _ -> ())
+  ; Token.tok_match = tparse
+  ; Token.tok_text = (fun _ -> "<tok>")
+  ; Token.tok_comm = None
+  ; Token.kwds = Hashtbl.create 0
+  }
 
 type 'a range =
     Begin of 'a

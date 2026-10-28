@@ -22,12 +22,17 @@ let mk_pevent name date place note src =
   ; epers_place = place
   ; epers_reason = empty_string
   ; epers_note = note
-  ; epers_src = src
+  ; epers_sources = if src = empty_string then [] else [src]
   ; epers_witnesses = [||]
   }
 
 let of_pevent e =
-  e.epers_date, e.epers_place, e.epers_note, e.epers_src
+  (* Pour la compatibilité, on retourne la première source (ou chaîne vide) *)
+  let src = match e.epers_sources with
+    | [] -> Gwdb.empty_string
+    | hd :: _ -> hd
+  in
+  e.epers_date, e.epers_place, e.epers_note, src
 
 let find_pevent names pevents =
   List.find_opt (fun x -> List.mem x.epers_name names) pevents
@@ -58,8 +63,10 @@ let fix_pevents ?report base pp =
         ; epers_reason = e.epers_reason
         ; epers_note =
             if e.epers_note = Gwdb.empty_string then note else e.epers_note
-        ; epers_src =
-            if e.epers_src = Gwdb.empty_string then src else e.epers_src
+        ; epers_sources =
+            if src = Gwdb.empty_string then e.epers_sources
+            else if e.epers_sources = [] then [src]
+            else e.epers_sources
         ; epers_witnesses = e.epers_witnesses
         }
       in

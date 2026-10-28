@@ -19,7 +19,7 @@ build: [
 
 depends: [
   "benchmark" { with-test }
-  "camlp5" { build }
+  "camlp5" { >= "8.00.01" & < "8.04" }
   "cppo" { build }
   "dune" { >= "1.10" }
   "markup"

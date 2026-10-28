@@ -1,9 +1,17 @@
 (dirs :standard \ %%%DUNE_DIRS_EXCLUDE%%%)
 
+(rule
+ (targets templ.ml)
+ (deps templ.camlp5.ml)
+ (action
+  (with-stdout-to %{targets}
+   (run not-ocamlfind preprocess -package camlp5.extend,camlp5.quotations,camlp5.pr_o -syntax camlp5o %{deps}))))
+
 (library
  (name geneweb)
  (public_name geneweb-lib)
  (synopsis "GeneWeb library")
+ (flags -w -8)
  (preprocess (action (run %{bin:cppo} %%%CPPO_D%%% -V OCAML:%{ocaml_version} %{input-file})))
  (libraries unix
             %%%API_PKG%%%
@@ -13,6 +21,7 @@
             camlp5.gramlib
             geneweb-lib.gwdb_driver.mli
             geneweb-lib.def
+            geneweb-lib.io
             geneweb-lib.sosa.mli
             geneweb-lib.util
             geneweb-lib.wserver.mli

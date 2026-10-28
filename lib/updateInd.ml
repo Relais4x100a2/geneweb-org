@@ -151,7 +151,11 @@ and eval_simple_var conf base env p =
             in
             let place = Util.string_of_place conf (sou base e.epers_place) in
             let note = sou base e.epers_note in
-            let src = sou base e.epers_src in
+            (* Pour l'affichage, on prend la première source (ou chaîne vide) *)
+            let src = match e.epers_sources with
+              | [] -> ""
+              | hd :: _ -> sou base hd
+            in
             let wit =
               Array.fold_right
                 (fun (w, wk) accu ->
@@ -327,6 +331,36 @@ and eval_simple_var conf base env p =
           | None -> raise Not_found
           end
       | _ -> raise Not_found
+      end
+  | ["has_sources"] ->
+      begin match get_env "cnt" env with
+        Vint i ->
+          let e =
+            try Some (List.nth p.pevents (i - 1)) with Failure _ -> None
+          in
+          begin match e with
+            Some e -> bool_val (e.epers_sources <> [])
+          | None -> raise Not_found
+          end
+      | _ -> raise Not_found
+      end
+  | ["scnt"] -> eval_int_env "scnt" env
+  | ["source"] ->
+      begin match get_env "cnt" env, get_env "scnt" env with
+        Vint i, Vint j ->
+          let e =
+            try Some (List.nth p.pevents (i - 1)) with Failure _ -> None
+          in
+          begin match e with
+            Some e ->
+              begin try
+                let src = List.nth e.epers_sources (j - 1) in
+                str_val (Util.escape_html src)
+              with Failure _ -> str_val ""
+              end
+          | None -> str_val ""
+          end
+      | _ -> str_val ""
       end
   | "witness" :: sl ->
       begin match get_env "cnt" env with
@@ -612,8 +646,13 @@ and eval_event_var e =
       | _ -> str_val ""
       end
   | ["e_src"] ->
+      (* Pour la rétrocompatibilité, on retourne la première source *)
       begin match e with
-        Some {epers_src = x} -> str_val (Util.escape_html x)
+        Some evt ->
+          begin match evt.epers_sources with
+            | [] -> str_val ""
+            | hd :: _ -> str_val (Util.escape_html hd)
+          end
       | _ -> str_val ""
       end
   | _ -> raise Not_found
@@ -749,6 +788,7 @@ let print_foreach print_ast _eval_expr =
     | ["title"] -> print_foreach_title env p al p.titles
     | ["pevent"] -> print_foreach_pevent env p al p.pevents
     | ["witness"] -> print_foreach_witness env p al p.pevents
+    | ["source"] -> print_foreach_source env p al p.pevents
     | _ -> raise Not_found
   and print_foreach_string env p al list lab =
     let _ =
@@ -808,6 +848,28 @@ let print_foreach print_ast _eval_expr =
               List.iter (print_ast env p) al
             end
             e.epers_witnesses
+        | None -> ()
+        end
+    | _ -> ()
+  and print_foreach_source env p al list =
+    match get_env "cnt" env with
+      Vint i ->
+        begin match
+          (try Some (List.nth list (i - 1)) with Failure _ -> None)
+        with
+        | Some e ->
+          let last = List.length e.epers_sources - 1 in
+          List.iteri
+            begin fun i src ->
+              let env =
+                ("scnt", Vint (i + 1))
+                :: ("first", Vbool (i = 0))
+                :: ("last", Vbool (i = last))
+                :: ("source", Vstring src) :: env
+              in
+              List.iter (print_ast env p) al
+            end
+            e.epers_sources
         | None -> ()
         end
     | _ -> ()

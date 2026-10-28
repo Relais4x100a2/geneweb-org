@@ -39,7 +39,9 @@ let create_cache base mode cache_file =
         Gwdb.Collection.fold
           (fun acc p ->
              let acc = add acc (get_psources p) in
-             List.fold_left (fun acc e -> add acc e.epers_src) acc (get_pevents p) )
+             List.fold_left
+               (fun acc e -> List.fold_left add acc e.epers_sources)
+               acc (get_pevents p) )
           IstrSet.empty
           (Gwdb.persons base)
       in

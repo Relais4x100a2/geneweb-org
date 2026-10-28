@@ -1,0 +1,8 @@
+(include_subdirs no)
+(executable
+  (package geneweb)
+  (name gwc)
+  (public_name geneweb.gwc)
+  (modules gwc db1link)
+  (preprocess (action (run %{bin:cppo} -D UNIX  %{input-file})))
+  (libraries unix geneweb geneweb-lib.def geneweb-lib.io geneweb-lib.util geneweb-gwdb-legacy geneweb-sosa-zarith geneweb-wserver unidecode))

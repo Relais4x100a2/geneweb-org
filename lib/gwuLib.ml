@@ -637,7 +637,9 @@ module Make (Select : Select) =
       print_if_no_empty oc base "#p" e.epers_place;
       (* TODO *)
       (*print_if_no_empty oc base "#c" e.epers_cause;*)
-      print_if_no_empty oc base "#s" e.epers_src;
+      (* Pour l'export, on exporte toutes les sources séparées par des virgules *)
+      let sources_str = String.concat ", " (List.map (sou base) e.epers_sources) in
+      if sources_str <> "" then Printf.fprintf oc "#s %s\n" sources_str;
       Printf.fprintf oc "\n";
       Array.iter
         (fun (ip, wk) ->
@@ -1033,7 +1035,10 @@ module Make (Select : Select) =
             let rec loop l accu =
               match l with
                 [] -> accu
-              | evt :: l -> loop l (evt.epers_note :: evt.epers_src :: accu)
+              | evt :: l ->
+                  (* Aplatir la liste de sources dans l'accumulateur *)
+                  let sources_list = List.rev_append evt.epers_sources [] in
+                  loop l (evt.epers_note :: (List.rev_append sources_list accu))
             in
             loop (get_pevents p) sl
           else sl

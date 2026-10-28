@@ -165,7 +165,7 @@ let json_of_pevent bname pevent =
   `Assoc [ ("place", `String pevent.epers_place)
          ; ("reason", `String pevent.epers_reason)
          ; ("note", `String pevent.epers_note)
-         ; ("src", `String pevent.epers_src)
+         ; ("src", `String (match pevent.epers_sources with [] -> "" | hd :: _ -> hd))
          ; ("name", json_of_pevent_name pevent.epers_name)
          ; ("date", json_of_cdate pevent.epers_date)
          ; ("witnesses", `List (Array.to_list @@

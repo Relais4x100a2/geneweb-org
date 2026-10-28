@@ -331,7 +331,7 @@ module Family = struct
            let date = evt.efam_date in
            let place = evt.efam_place in
            let note = evt.efam_note in
-           let src = evt.efam_src in
+           let src = if evt.efam_src = Gwdb.empty_string then [] else [evt.efam_src] in
            let wl = evt.efam_witnesses in
            let x = name, date, place, note, src, wl, Some isp in
            x :: fam_fevents)
@@ -351,8 +351,11 @@ module Event = struct
   let spouse_opt (_, _, _, _, _, _, isp) =
     isp
 
-  let src base (_, _, _, _, s, _, _) =
-    sou base s
+  (* Pour la rétrocompatibilité, on prend la première source de la liste *)
+  let src (_base : base) ((_, _, _, _, sources, _, _) : Perso.event_name * Adef.cdate * Gwdb.istr * Gwdb.istr * Gwdb.istr list * (Gwdb.iper * Def.witness_kind) array * Gwdb.iper option) : Gwdb.istr =
+    match sources with
+    | [] -> Gwdb.empty_string
+    | hd :: _ -> hd
 
   let kind (n, _, _, _, _, _, _) =
     match n with

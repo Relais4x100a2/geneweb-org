@@ -36,7 +36,7 @@ let get_data conf =
       ; get_burial_src
       ; get_psources
       ]
-    , [ (fun evt -> evt.epers_src) ]
+    , [ (fun evt -> match evt.epers_sources with [] -> Gwdb.empty_string | hd :: _ -> hd) ]
     , [ get_marriage_src
       ; get_fsources ]
     , [ (fun evt -> evt.efam_src) ]
@@ -216,10 +216,11 @@ let update_person conf base old new_input p =
       let pevents =
         List.map
           (fun evt ->
-             let src_evt = evt.epers_src in
+             (* Pour la migration, on prend la première source *)
+             let src_evt = match evt.epers_sources with [] -> Gwdb.empty_string | hd :: _ -> hd in
              let s_evt = sou base src_evt in
              let src = if old = s_evt then new_istr else src_evt in
-             {evt with epers_src = src})
+             {evt with epers_sources = if src = Gwdb.empty_string then [] else [src]})
           (get_pevents p)
       in
       {(gen_person_of_person p) with birth_src = birth_src;

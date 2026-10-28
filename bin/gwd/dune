@@ -1,0 +1,51 @@
+(include_subdirs no)
+(rule
+  (target gwdPluginMD5.ml)
+  (deps
+    (alias_rec %{project_root}/plugins/plugin)
+    (:maker mk_gwdPluginMD5.ml)
+  )
+  (action (with-stdout-to %{target} (run ocaml %{maker} %{project_root}/plugins)))
+)
+
+(library
+  (name gwd_lib)
+  (public_name geneweb.gwd_lib)
+  (wrapped true)
+  (libraries
+    geneweb
+    geneweb-lib.def
+    geneweb-lib.sosa.mli
+    geneweb-lib.util
+    wserver)
+  (preprocess (action (run %{bin:cppo} -D UNIX  %{input-file})))
+  (modules requestHandler request)
+)
+
+(executable
+  (package geneweb)
+  (name gwd)
+  (public_name geneweb.gwd)
+  (flags -linkall)
+  (libraries
+    dynlink
+    geneweb
+    geneweb-jingoo
+    geneweb-lib.def
+    geneweb-lib.util
+    geneweb.logs
+    geneweb-gwdb-legacy
+    geneweb-sosa-zarith
+    geneweb-wserver
+    gwd_lib
+    str
+    unix
+    uri
+    wserver)
+  (preprocess (action (run %{bin:cppo} -D UNIX  %{input-file})))
+  (modules
+    gwd
+    gwdPluginMD5
+    gwDaemon
+  )
+)

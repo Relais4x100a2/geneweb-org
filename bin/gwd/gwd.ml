@@ -1,12 +1,13 @@
 open Geneweb
-open Gwdlib
+open Gwd_lib
+open Gwxjg
 
 let handler =
-  { RequestHandler.defaultHandler
+  { Gwd_lib.RequestHandler.defaultHandler
     with fallback = begin fun mode self conf base ->
         if mode = "SANDBOX" then begin
         let models = Gwxjg.Data.default_env conf base in
-        JgInterp.render ~conf ~file:"SANDBOX.html.jingoo" ~models
+        failwith "SANDBOX mode not yet implemented"
         end else self.incorrect_request self conf base
     end
 }

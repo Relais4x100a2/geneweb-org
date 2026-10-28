@@ -381,7 +381,9 @@ and mk_event conf base d =
           w )
   in
   let place = Tstr (E.place conf base d) in
-  let src = Tstr (E.src base d) in
+  let (_, _, _, _, sources, _, _) = d in
+  let src_istr = match sources with [] -> Gwdb.empty_string | hd :: _ -> hd in
+  let src = Tstr (Gwdb.sou base src_istr) in
   let note = Tstr (E.note conf base d) in
   Tpat (function "date" -> date
                | "kind" -> kind
@@ -661,7 +663,7 @@ and mk_fevent ?spouse conf base e =
     , e.efam_date
     , e.efam_place
     , e.efam_note
-    , e.efam_src
+    , (if e.efam_src = Gwdb.empty_string then [] else [e.efam_src])
     , e.efam_witnesses
     , spouse)
 
@@ -671,7 +673,7 @@ and mk_pevent conf base e =
     , e.epers_date
     , e.epers_place
     , e.epers_note
-    , e.epers_src
+    , e.epers_sources
     , e.epers_witnesses
     , None)
 

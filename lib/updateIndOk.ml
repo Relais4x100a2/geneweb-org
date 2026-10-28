@@ -143,7 +143,7 @@ let reconstitute_insert_pevent conf ext cnt el =
           let e1 =
             {epers_name = Epers_Name ""; epers_date = Adef.cdate_None;
              epers_place = ""; epers_reason = ""; epers_note = "";
-             epers_src = ""; epers_witnesses = [| |]}
+             epers_sources = []; epers_witnesses = [| |]}
           in
           loop (e1 :: el) (n - 1)
         else el
@@ -224,11 +224,24 @@ let rec reconstitute_pevents conf ext cnt =
           only_printable_or_nl (Mutil.strip_all_trailing_spaces note)
         | _ -> ""
       in
-      let epers_src =
+      (* Reconstruction des sources multiples *)
+      let reconstitute_sources conf cnt =
+        let rec loop i =
+          (* Les champs sources sont nommés: e0_src0, e0_src1, etc. *)
+          let key = "e" ^ string_of_int cnt ^ "_src" ^ string_of_int i in
+          match p_getenv conf.env key with
+          | Some src when src <> "" ->
+              let src = only_printable src in
+              src :: loop (i + 1)
+          | _ -> []
+        in
+        (* Support pour l'ancien format e_src (rétrocompatibilité) *)
         match get_nth conf "e_src" cnt with
-          Some src -> only_printable src
-        | _ -> ""
+        | Some old_src when old_src <> "" ->
+            only_printable old_src :: loop 0
+        | _ -> loop 0
       in
+      let epers_sources = reconstitute_sources conf cnt in
       (* Type du témoin par défaut lors de l'insertion de nouveaux témoins. *)
       let wk =
         if epers_name = Epers_Baptism then Witness_GodParent else Witness
@@ -313,7 +326,7 @@ let rec reconstitute_pevents conf ext cnt =
       let e =
         {epers_name = epers_name; epers_date = Adef.cdate_of_od epers_date;
          epers_place = epers_place; epers_reason = "";
-         epers_note = epers_note; epers_src = epers_src;
+         epers_note = epers_note; epers_sources = epers_sources;
          epers_witnesses = Array.of_list witnesses}
       in
       let (el, ext) = reconstitute_pevents conf ext (cnt + 1) in
@@ -463,15 +476,19 @@ let reconstitute_from_pevents pevents ext bi bp de bu =
           Epers_Birth ->
             if !found_birth then loop l bi bp de bu
             else
+              (* Pour la compatibilité, on prend la première source *)
+              let src = match evt.epers_sources with [] -> "" | hd :: _ -> hd in
               let bi =
-                evt.epers_date, evt.epers_place, evt.epers_note, evt.epers_src
+                evt.epers_date, evt.epers_place, evt.epers_note, src
               in
               let () = found_birth := true in loop l bi bp de bu
         | Epers_Baptism ->
             if !found_baptism then loop l bi bp de bu
             else
+              (* Pour la compatibilité, on prend la première source *)
+              let src = match evt.epers_sources with [] -> "" | hd :: _ -> hd in
               let bp =
-                evt.epers_date, evt.epers_place, evt.epers_note, evt.epers_src
+                evt.epers_date, evt.epers_place, evt.epers_note, src
               in
               let () = found_baptism := true in loop l bi bp de bu
         | Epers_Death ->
@@ -491,24 +508,30 @@ let reconstitute_from_pevents pevents ext bi bp de bu =
                         death
                     | _ -> DeadDontKnowWhen
               in
+              (* Pour la compatibilité, on prend la première source *)
+              let src = match evt.epers_sources with [] -> "" | hd :: _ -> hd in
               let de =
-                death, evt.epers_place, evt.epers_note, evt.epers_src
+                death, evt.epers_place, evt.epers_note, src
               in
               let () = found_death := true in loop l bi bp de bu
         | Epers_Burial ->
             if !found_burial then loop l bi bp de bu
             else
+              (* Pour la compatibilité, on prend la première source *)
+              let src = match evt.epers_sources with [] -> "" | hd :: _ -> hd in
               let bu =
                 Buried evt.epers_date, evt.epers_place, evt.epers_note,
-                evt.epers_src
+                src
               in
               let () = found_burial := true in loop l bi bp de bu
         | Epers_Cremation ->
             if !found_burial then loop l bi bp de bu
             else
+              (* Pour la compatibilité, on prend la première source *)
+              let src = match evt.epers_sources with [] -> "" | hd :: _ -> hd in
               let bu =
                 Cremated evt.epers_date, evt.epers_place, evt.epers_note,
-                evt.epers_src
+                src
               in
               let () = found_burial := true in loop l bi bp de bu
         | _ -> loop l bi bp de bu
@@ -780,7 +803,7 @@ let strip_pevents p =
            Epers_Name s -> s <> "", strip_array_witness e.epers_witnesses
          | Epers_Birth | Epers_Baptism ->
              Adef.od_of_cdate e.epers_date <> None || e.epers_place <> "" ||
-             e.epers_reason <> "" || e.epers_note <> "" || e.epers_src <> "",
+             e.epers_reason <> "" || e.epers_note <> "" || e.epers_sources <> [],
              strip_array_witness e.epers_witnesses
          | _ -> true, strip_array_witness e.epers_witnesses
        in
@@ -1302,7 +1325,10 @@ let print_mod ?prerr o_conf base =
         let rec loop l accu =
           match l with
             [] -> accu
-          | evt :: l -> loop l (evt.epers_note :: evt.epers_src :: accu)
+          | evt :: l ->
+              (* Aplatir la liste de sources dans l'accumulateur *)
+              let sources_list = List.rev_append evt.epers_sources [] in
+              loop l (evt.epers_note :: (List.rev_append sources_list accu))
         in
         loop p.pevents sl
       in
